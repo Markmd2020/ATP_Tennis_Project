@@ -33,7 +33,7 @@ any(atp_2025_num_vars)
 vis_miss(atp_2025_num_vars)
 
 #Test if the data are missing completely at random
-mcar_test(atp_2025_num_vars) 
+mcar_test(atp_2025_num_vars)  
 
 #Summary of winners
 players_win <- as.data.frame(table(atp_2025$winner_name))
@@ -483,3 +483,137 @@ p <- p + scale_x_continuous(breaks = seq(10, 100, 10))
 p <- p + labs(x = "Percentage points won on first serve")
 p <- p + labs(title = "Percentage points won on first serve by winners 
               and Losers")
+
+#Effect of age,height and hand
+#Prepare the data
+winners_df <-atp_2025 %>%
+  dplyr::select(surface,tourney_date, starts_with("w")) %>%
+  dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("w"))
+
+#Create win column
+winners_df$win_game <- "Yes"
+
+losers_df <- atp_2025 %>%
+  dplyr::select(surface,tourney_date, starts_with("l")) %>%
+  dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("l"))
+
+losers_df$win_game <- "No"
+
+#Quality checks before stacking both datasets
+all(dim(winners_df) ==dim(losers_df))
+all(names(winners_df)==names(losers_df))
+
+match_stats <- data.frame(rbind(losers_df,winners_df))
+head(match_stats)
+str(match_stats)
+match_stats$win_game  <- as.factor(match_stats$win_game)
+
+#Influence of Age
+ggplot(match_stats, aes(x = age, colour = win_game)) +
+  geom_density() +
+  labs(title = "Age Distribution by Match OutCome", x = "Age", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")
+
+#KS Tests
+clay_winners <- match_stats %>% filter(surface=="Clay"& win_game=="Yes")%>%
+                select(age) 
+clay_winners1 <-  unlist(as.vector(clay_winners))
+
+
+clay_losers <- match_stats %>% filter(surface=="Clay"& win_game=="No")%>%
+  select(age)
+clay_losers1 <-  unlist(as.vector(clay_losers))
+
+ks.test(x=as.vector(clay_winners1),y=as.vector(clay_losers1))
+
+
+grass_winners <- match_stats %>% filter(surface=="Grass"& win_game=="Yes")%>%
+  select(age) 
+grass_winners1 <-  unlist(as.vector(grass_winners))
+
+grass_losers <- match_stats %>% filter(surface=="Grass"& win_game=="No")%>%
+  select(age)
+grass_losers1 <-  unlist(as.vector(grass_losers))
+
+ks.test(x=as.vector(grass_winners1),y=as.vector(grass_losers1))
+
+
+hard_winners <- match_stats %>% filter(surface=="Hard"& win_game=="Yes")%>%
+  select(age) 
+hard_winners1 <-  unlist(as.vector(hard_winners))
+
+hard_losers <- match_stats %>% filter(surface=="Hard"& win_game=="No")%>%
+  select(age)
+hard_losers1 <-  unlist(as.vector(hard_losers))
+
+ks.test(x=as.vector(hard_winners1),y=as.vector(hard_losers1))
+
+#Influence of Height
+ggplot(match_stats, aes(x = ht, colour = win_game)) +
+  geom_density() +
+  labs(title = "Height Distribution by Match OutCome", x = "Height", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")
+
+#Carry out KS Tests
+clay_winners <- match_stats %>% filter(surface=="Clay"& win_game=="Yes")%>%
+  select(ht) 
+clay_winners1 <-  unlist(as.vector(clay_winners))
+
+
+clay_losers <- match_stats %>% filter(surface=="Clay"& win_game=="No")%>%
+  select(ht)
+clay_losers1 <-  unlist(as.vector(clay_losers))
+
+ks.test(x=as.vector(clay_winners1),y=as.vector(clay_losers1))
+
+grass_winners <- match_stats %>% filter(surface=="Grass"& win_game=="Yes")%>%
+  select(ht) 
+grass_winners1 <-  unlist(as.vector(grass_winners))
+
+grass_losers <- match_stats %>% filter(surface=="Grass"& win_game=="No")%>%
+  select(ht)
+grass_losers1 <-  unlist(as.vector(grass_losers))
+
+ks.test(x=as.vector(grass_winners1),y=as.vector(grass_losers1))
+
+hard_winners <- match_stats %>% filter(surface=="Hard"& win_game=="Yes")%>%
+  select(ht) 
+hard_winners1 <-  unlist(as.vector(hard_winners))
+
+hard_losers <- match_stats %>% filter(surface=="Hard"& win_game=="No")%>%
+  select(ht)
+hard_losers1 <-  unlist(as.vector(hard_losers))
+
+ks.test(x=as.vector(hard_winners1),y=as.vector(hard_losers1))
+
+head(match_stats)
+#Influence of Dominant Hand
+match_stats %>%
+  filter(hand !="")%>%
+  dplyr::mutate(game_winner=ifelse(win_game=="Yes",1,0)) %>%
+  group_by(surface,hand) %>%
+  summarise(win_rate=mean(game_winner)) 
+
+match_stats %>%
+  filter(hand !="")%>%
+  dplyr::mutate(game_winner=ifelse(win_game=="Yes",1,0)) %>%
+  group_by(surface,hand) %>%
+  summarise(win_rate=mean(game_winner)) 
+
+clay_stats1 <- match_stats %>%
+  filter(hand !="" & surface=="Clay")
+
+chisq.test(table(clay_stats1$win_game,clay_stats1$hand)) 
+
+grass_stats1 <- match_stats %>%
+  filter(hand !="" & surface=="Grass")
+
+chisq.test(table(grass_stats1$win_game,grass_stats1$hand))
+
+
+hard_stats1 <- match_stats %>%
+  filter(hand !="" & surface=="Hard")
+
+chisq.test(table(hard_stats1$win_game,hard_stats1$hand))
