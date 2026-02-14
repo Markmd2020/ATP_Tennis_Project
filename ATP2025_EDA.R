@@ -8,7 +8,8 @@ library(tidyr)
 library(reshape2)
 library(lubridate)
 library(GGally)
-library(scales)  
+library(scales)
+library(naniar)
 
 #Set seed for reproducibility
 set.seed(135)
@@ -18,6 +19,21 @@ atp_2025 <- read.csv("C:/Applied_Stats_Project/Data/2025.csv")
 
 #Initial Summary
 str(atp_2025)
+
+#Descriptive statistics
+summary(atp_2025)
+
+#Split into categorical and numerical variables
+atp_2025_cat_vars <- atp_2025 %>% select(where(~ is.character(.x) || is.factor(.x)))
+atp_2025_num_vars   <- atp_2025 %>% select(where(is.numeric))
+any(is.na(atp_2025_cat_vars)) #  There are no instances of categorical variables
+any(atp_2025_num_vars)
+
+#Visualisation of missing values
+vis_miss(atp_2025_num_vars)
+
+#Test if the data are missing completely at random
+mcar_test(atp_2025_num_vars) 
 
 #Summary of winners
 players_win <- as.data.frame(table(atp_2025$winner_name))
@@ -351,7 +367,8 @@ ggplot(ss_serve_won_long, aes(ss_percentage_won, fill = player_type)) +
   geom_histogram(alpha = 0.5, binwidth = 1, aes(y = ..count..), 
                  position = 'identity') +
   scale_x_continuous(breaks = seq(10, 100, 10)) +
-  xlim(0,100)
+  xlim(0,100) +
+  xlab("Second Service Percentage Wins")
 
 
 qplot(x = player_type,y = ss_percentage_won,
@@ -411,7 +428,8 @@ summary(per_bpSaved_long)
 
 ggplot(per_bpSaved_long, aes(percentage_bpSaved, fill = player_type)) + 
   geom_histogram(alpha = 0.5, aes(y = ..count..), position = 'identity') +
-  xlim(0,200)
+  xlim(0,100) +
+  xlab("Percentage of Break Points Saved")
 
 #Correlation between match win stats
 match_win_stats <- ggpairs(atp_player_data, c(3:6))
