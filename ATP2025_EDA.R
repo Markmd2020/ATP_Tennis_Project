@@ -508,6 +508,17 @@ head(match_stats)
 str(match_stats)
 match_stats$win_game  <- as.factor(match_stats$win_game)
 
+#Investigate the relationship between aces and double faults
+#check correlation
+stats::cor(x=match_stats$df,y=match_stats$ace,use = "complete.obs")
+
+#Assess visually
+ggplot(data=match_stats,aes(x=df, y=ace,col=win_game)) +
+  geom_point() +
+  facet_wrap(~surface) +
+  xlab("Double Faults") +
+  ylab("Aces")
+
 #Influence of Age
 ggplot(match_stats, aes(x = age, colour = win_game)) +
   geom_density() +
@@ -600,7 +611,7 @@ match_stats %>%
   filter(hand !="")%>%
   dplyr::mutate(game_winner=ifelse(win_game=="Yes",1,0)) %>%
   group_by(surface,hand) %>%
-  summarise(win_rate=mean(game_winner)) 
+  summarise(win_rate=mean(game_winner))  
 
 clay_stats1 <- match_stats %>%
   filter(hand !="" & surface=="Clay")
@@ -617,3 +628,82 @@ hard_stats1 <- match_stats %>%
   filter(hand !="" & surface=="Hard")
 
 chisq.test(table(hard_stats1$win_game,hard_stats1$hand))
+
+#Expected Wins Analysis
+
+#Put the data together
+unique(atp_2025$tourney_id)
+unique(atp_2025$tourney_name)
+#Extract IDs
+atp_2025[atp_2025$tourney_name=="Australian Open","tourney_id"]
+atp_2025[atp_2025$tourney_name=="Roland Garros","tourney_id"]
+atp_2025[atp_2025$tourney_name=="Wimbledon","tourney_id"]
+atp_2025[atp_2025$tourney_name=="US Open","tourney_id"]
+
+#Dataset by tournament
+aus_open_df <- tourney_df(atp_2025,"2025-580")
+french_open_df <- tourney_df(atp_2025,"2025-520")
+wimbledon_df <- tourney_df(atp_2025,"2025-540")
+us_open_df <- tourney_df(atp_2025,"2025-560")
+
+#Compare number of bonus round by tournaments
+table(aus_open_df$bonus_round)
+table(french_open_df$bonus_round)
+table(wimbledon_df$bonus_round)
+table(us_open_df$bonus_round)
+
+#Plot in Bar Chart
+summary_df <- data.frame(tournament=c("Australian Open","French Open",
+                                      "Wimbledon","US Open"),
+                         overachievers=c(20,22,26,21))
+head(summary_df)
+
+ggplot(summary_df, aes(x = tournament, y = overachievers,fill=tournament)) +
+  geom_bar(stat="identity") +
+  scale_fill_manual(values=c("purple","orange","blue","darkgreen")) +
+  geom_text(aes(label=overachievers),vjust=-0.5) +
+  ggtitle("Number of players that went further than suggested by their seed")
+
+#Distribution of expected wins by rank
+rank_seq <- seq(1,200)
+expected_wins <- ceiling(7 -log(rank_seq,base=2))
+expected_wins_df <- data.frame(cbind(player_rank=rank_seq,expected_wins))
+head(expected_wins_df)
+
+ggplot(expected_wins_df, aes(x = player_rank, y = expected_wins)) +
+  geom_point() +
+  stat_smooth() +
+  xlab("Player Rank") +
+  ylab("Grand Slam Expected Games Win Total") +
+  ggtitle("Expected Grand Slam Wins By ATP Ranking")
+
+#Check which ATP ranking bands yields the most upsets
+grand_slams_df <- data.frame(rbind(aus_open_df,french_open_df,
+                                   wimbledon_df,us_open_df))
+head(grand_slams_df)
+players_rank <- data.frame(atp_rank=grand_slams_df[grand_slams_df$bonus_round==1,"player_rank"])
+players_rank1 <- players_rank  %>%
+  filter(atp_rank<257)%>%
+  na.omit()
+
+custom_breaks <-c(1,9,17,33,65,129,257)
+hist(players_rank1$atp_rank,breaks=custom_breaks,
+     main="Histogram of ATP rank for Grand Slam Overchievers",
+     xlab="ATP Rank")
+
+#Group Rankings Into Bins
+grand_slams_df%>%
+                mutate(rank_bin=case_when(player_rank<9 ~"ATP Rank 1-8",
+                player_rank<17 ~"ATP Rank 9-16",
+                player_rank<33 ~"ATP Rank 17-32",
+                player_rank<65 ~"ATP Rank 33-64",
+                player_rank<129 ~"ATP Rank 65-128",
+                TRUE~"129+")) %>%
+                group_by(rank_bin) %>%
+                summarise(avg_bonus=mean(bonus_round,na.rm=TRUE))
+
+#Exclude players with a rank lower than 128 
+grand_slams_df%>%
+  filter(player_rank <=128)%>%
+  summarise(avg_bonus=mean(bonus_round,na.rm=TRUE),
+            total_bonus=sum(bonus_round))
