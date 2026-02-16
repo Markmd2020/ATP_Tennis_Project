@@ -519,6 +519,20 @@ ggplot(data=match_stats,aes(x=df, y=ace,col=win_game)) +
   xlab("Double Faults") +
   ylab("Aces")
 
+sum(match_stats$win_game=="Yes")/nrow(match_stats)#Sanity check to see we have the
+#right number of winners and losers
+
+#Assess visually the relationship between breakpoints faced and saved
+ggplot(data=match_stats,aes(x=df, y=ace,col=win_game)) +
+  geom_point() +
+  facet_wrap(~surface) +
+  xlab("Double Faults") +
+  ylab("Aces")
+
+match_stats %>%
+  group_by(win_game) %>%
+  summarise(avg_break_points_faced=mean(bpFaced,na.rm=TRUE))
+
 #Influence of Age
 ggplot(match_stats, aes(x = age, colour = win_game)) +
   geom_density() +
