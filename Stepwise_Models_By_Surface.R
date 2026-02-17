@@ -93,9 +93,9 @@ hard_vars_to_remove <- c("bpSaved")
 
 hard_court1 <- hard_court[,setdiff(names(hard_court),hard_vars_to_remove)]
 head(hard_court1)
-full_model <- glm(win_game~.,data=hard_court1,family = "binomial")
+hard_court_full_model <- glm(win_game~.,data=hard_court1,family = "binomial")
 #Stepwise selection
-step(full_model,scope=~.,direction = "both")
+step(hard_court_full_model,scope=~.,direction = "both")
 
 #Repeat the analysis for grass
 grass_court <- match_stats2%>%
@@ -134,9 +134,9 @@ grass_vars_to_remove <- c("bpSaved")
 
 grass_court1 <- grass_court[,setdiff(names(grass_court),grass_vars_to_remove)]
 head(grass_court1)
-full_model <- glm(win_game~.,data=grass_court1,family = "binomial")
+grass_court_full_model <- glm(win_game~.,data=grass_court1,family = "binomial")
 #Stepwise selection
-step(full_model,scope=~.,direction = "both")
+step(grass_court_full_model,scope=~.,direction = "both")
 
 #Repeat the analysis for clay
 clay_court <- match_stats2%>%
@@ -175,6 +175,6 @@ clay_vars_to_remove <- c("bpSaved")
 
 clay_court1 <- clay_court[,setdiff(names(clay_court),clay_vars_to_remove)]
 head(clay_court1)
-full_model <- glm(win_game~.,data=clay_court1,family = "binomial")
+clay_court_full_model <- glm(win_game~.,data=clay_court1,family = "binomial")
 #Stepwise selection
-step(full_model,scope=~.,direction = "both")
+step(clay_court_full_model,scope=~.,direction = "both")
