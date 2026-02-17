@@ -39,6 +39,11 @@ losers_df$win_game <- "No"
 all(dim(winners_df) ==dim(losers_df))
 all(names(winners_df)==names(losers_df))
 
+match_stats <- data.frame(rbind(losers_df,winners_df))
+head(match_stats)
+str(match_stats)
+match_stats$win_game  <- as.factor(match_stats$win_game)
+
 #Feature Engineering
 head(match_stats)
 match_stats1 <-match_stats %>%
@@ -118,7 +123,7 @@ cor_df <- round(cor(grass_court_num), 2)
 #melt the data frame to enable plotting
 melted_cor <- melt(cor_df)
 #view head of melted data frame
-head(melted_cor)
+head(melted_cor) 
 
 #create correlation heatmap
 ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) + 
@@ -171,10 +176,10 @@ ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) +
         axis.title.y = element_blank(),
         panel.background = element_blank())
 
-clay_vars_to_remove <- c("bpSaved")
+clay_vars_to_remove <- c("bpSaved") 
 
 clay_court1 <- clay_court[,setdiff(names(clay_court),clay_vars_to_remove)]
 head(clay_court1)
 clay_court_full_model <- glm(win_game~.,data=clay_court1,family = "binomial")
 #Stepwise selection
-step(clay_court_full_model,scope=~.,direction = "both")
+step(clay_court_full_model,scope=~.,direction = "both") 
