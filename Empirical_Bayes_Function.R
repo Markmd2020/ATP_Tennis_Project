@@ -105,4 +105,46 @@ ggplot(aus_beta, aes(x, density, color = name)) +
   stat_function(fun = function(x) dbeta(x, alpha0, beta0),
                 lty = 2, color = "black") +
   labs(x = "First Serve Win Percentage",
-       color = "Player")   
+       color = "Player") 
+
+#Apply to French Open to evaluate second serve
+french_open_top8 <- match_stats %>% 
+  filter(tourney_name=="Roland Garros" & rank <=8) %>%
+  na.omit() %>%
+  dplyr::select(name,X1stIn,svpt,X2ndWon) %>%
+  group_by(name)%>%
+  summarise(Second_Serve=sum(svpt-X1stIn),Second_Won=sum(X2ndWon))%>%
+  mutate(Second_Serve_Won_Avg=Second_Won/Second_Serve)
+
+# log-likelihood function
+ll <- function(alpha, beta) {
+  x <- french_open_top8$Second_Won
+  total <- french_open_top8$Second_Serve
+  -sum(VGAM::dbetabinom.ab(x, total, alpha, beta, log = TRUE))
+}
+
+# maximum likelihood estimation
+m <- mle(ll, start = list(alpha = 1, beta = 1), method = "L-BFGS-B",
+         lower = c(0.0001, .1))
+ab <- coef(m)
+alpha0 <- ab[1]
+beta0 <- ab[2]
+
+#Update Empirical Bayes
+french_open_top8 <- french_open_top8 %>%
+  mutate(eb_estimate = (Second_Won + alpha0) / (Second_Serve + alpha0 + beta0),
+         alpha1 = alpha0 + Second_Won,
+         beta1 = beta0 + Second_Serve - Second_Won)
+head(french_open_top8)
+
+french_open_beta <- french_open_top8 %>%
+  crossing(x = seq(.5, .7, .001)) %>%
+  ungroup() %>%
+  mutate(density = dbeta(x, alpha1, beta1))
+
+ggplot(french_open_beta, aes(x, density, color = name)) +
+  geom_line() +
+  stat_function(fun = function(x) dbeta(x, alpha0, beta0),
+                lty = 2, color = "black") +
+  labs(x = "Second Serve Win Percentage",
+       color = "Player") 
