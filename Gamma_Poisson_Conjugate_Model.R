@@ -16,7 +16,7 @@ prior_beta_inf <- 2
 #Retrieve Wimbledon Data
 wimbledon_top8 <- match_stats %>% 
   filter(tourney_name=="Wimbledon" & rank <=8) %>%
-  select(name,ace)
+  dplyr::select(name,ace)
 
 head(wimbledon_top8)
 wimbledon_top8[wimbledon_top8$name=="Taylor Fritz","ace"]
@@ -41,3 +41,24 @@ shape <- posterior_flat$alpha
 rate <-  posterior_flat$beta
 lambda_sim <- rgamma(shape,rate)
 credible_interval <- quantile(lambda_sim,c(0.025,0.975))
+
+#Build the function into a loop
+head(wimbledon_top8)
+dim(wimbledon_top8)
+player_ids <- unique(wimbledon_top8$name)
+total_aces <- vector(mode="numeric")
+total_games <- vector(mode="numeric")
+alpha <- vector(mode="numeric")
+beta <- vector(mode="numeric") 
+
+for (i in seq_along(player_ids)){
+   total_aces[i] <- sum(wimbledon_top8[wimbledon_top8$name==player_ids[i],"ace"])
+   total_games[i] <- length(wimbledon_top8[wimbledon_top8$name==player_ids[i],"ace"])
+   alpha[i]  <- update_gamma(prior_alpha_flat,prior_beta_flat,total_aces[i],total_games[i])$alpha
+   beta[i]  <- update_gamma(prior_alpha_flat,prior_beta_flat,total_aces[i],total_games[i])$beta
+}
+
+#Combine into dataframe
+wimbledon_top8_aces_df <- data.frame(cbind(player_name=player_ids,total_aces=total_aces,
+                                           total_games=total_games,alpha=alpha,beta=beta))
+
