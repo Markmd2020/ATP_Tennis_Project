@@ -96,7 +96,7 @@ ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) +
 
 hard_vars_to_remove <- c("bpSaved")
 
-hard_court1 <- hard_court[,setdiff(names(hard_court),hard_vars_to_remove)]
+hard_court1 <- hard_court[,setdiff(c("win_game",names(hard_court_num)),hard_vars_to_remove)]
 head(hard_court1)
 hard_court_full_model <- glm(win_game~.,data=hard_court1,family = "binomial")
 #Stepwise selection
@@ -137,7 +137,7 @@ ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) +
 
 grass_vars_to_remove <- c("bpSaved")
 
-grass_court1 <- grass_court[,setdiff(names(grass_court),grass_vars_to_remove)]
+grass_court1 <- grass_court[,setdiff(c("win_game",names(grass_court_num)),grass_vars_to_remove)]
 head(grass_court1)
 grass_court_full_model <- glm(win_game~.,data=grass_court1,family = "binomial")
 #Stepwise selection
@@ -178,12 +178,9 @@ ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) +
 
 clay_vars_to_remove <- c("bpSaved") 
 
-clay_court1 <- clay_court[,setdiff(names(clay_court),clay_vars_to_remove)]
+clay_court1 <- clay_court[,setdiff(c("win_game",names(clay_court_num)),clay_vars_to_remove)]
 head(clay_court1)
 clay_court_full_model <- glm(win_game~.,data=clay_court1,family = "binomial")
 #Stepwise selection
 step(clay_court_full_model,scope=~.,direction = "both") 
 
-update_beta <- function(prior_alpha,prior_beta,sucesses,trials){
-  posterior_alpha <- prior_apha + sucesses
-}
