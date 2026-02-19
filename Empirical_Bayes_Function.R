@@ -111,9 +111,9 @@ ggplot(aus_beta, aes(x, density, color = name)) +
 french_open_top8 <- match_stats %>% 
   filter(tourney_name=="Roland Garros" & rank <=8) %>%
   na.omit() %>%
-  dplyr::select(name,X1stIn,svpt,X2ndWon) %>%
+  dplyr::select(name,X1stIn,svpt,df,X2ndWon) %>%
   group_by(name)%>%
-  summarise(Second_Serve=sum(svpt-X1stIn),Second_Won=sum(X2ndWon))%>%
+  summarise(Second_Serve=sum(svpt - X1stIn -df),Second_Won=sum(X2ndWon))%>%
   mutate(Second_Serve_Won_Avg=Second_Won/Second_Serve)
 
 # log-likelihood function

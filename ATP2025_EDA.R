@@ -728,10 +728,10 @@ grand_slams_df%>%
 #Use stepwise technique based on AIC
 #Add feature engineering techniques
 #Feature Engineering
-head(match_stats)
+head(match_stats) 
 match_stats1 <-match_stats %>%
   mutate(first_point_serve_win_pct=X1stWon/X1stIn,
-         second_point_serve_win_pct=X2ndWon/pmax((X1stIn -X1stWon),1),#Double check this metric
+         second_point_serve_win_pct=X2ndWon/pmax((svpt - X1stIn -df),1),#Double check this metric
          aces_df_ratio=ace/pmax(df,1),
          bp_saved_pct=bpSaved/pmax(bpFaced,1))
 
@@ -848,7 +848,7 @@ cor_df <- round(cor(clay_court_num), 2)
 melted_cor <- melt(cor_df)
 #view head of melted data frame
 head(melted_cor)
-
+ 
 #create correlation heatmap
 ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) + 
   geom_tile() +

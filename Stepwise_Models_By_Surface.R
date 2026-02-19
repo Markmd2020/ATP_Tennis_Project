@@ -23,14 +23,14 @@ atp_2025 <- read.csv("C:/Applied_Stats_Project/Data/2025.csv")
 
 #Prepare the data
 winners_df <-atp_2025 %>%
-  dplyr::select(surface,tourney_date, starts_with("w")) %>%
+  dplyr::select(surface,tourney_date,tourney_name, starts_with("w")) %>%
   dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("w"))
 
 #Create win column
 winners_df$win_game <- "Yes"
 
 losers_df <- atp_2025 %>%
-  dplyr::select(surface,tourney_date, starts_with("l")) %>%
+  dplyr::select(surface,tourney_date,tourney_name,starts_with("l")) %>%
   dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("l"))
 
 losers_df$win_game <- "No"
@@ -48,7 +48,7 @@ match_stats$win_game  <- as.factor(match_stats$win_game)
 head(match_stats)
 match_stats1 <-match_stats %>%
   mutate(first_point_serve_win_pct=X1stWon/X1stIn,
-         second_point_serve_win_pct=X2ndWon/pmax((X1stIn -X1stWon),1),#Double check this metric
+         second_point_serve_win_pct=X2ndWon/pmax((svpt - X1stIn -df),1),#Double check this metric
          aces_df_ratio=ace/pmax(df,1),
          bp_saved_pct=bpSaved/pmax(bpFaced,1))
 
@@ -183,3 +183,7 @@ head(clay_court1)
 clay_court_full_model <- glm(win_game~.,data=clay_court1,family = "binomial")
 #Stepwise selection
 step(clay_court_full_model,scope=~.,direction = "both") 
+
+update_beta <- function(prior_alpha,prior_beta,sucesses,trials){
+  posterior_alpha <- prior_apha + sucesses
+}

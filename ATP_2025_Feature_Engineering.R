@@ -49,7 +49,7 @@ match_stats$win_game <- as.factor(match_stats$win_game)
 
 match_stats1 <-match_stats %>%
   mutate(first_point_serve_win_pct=X1stWon/X1stIn,
-         second_point_serve_win_pct=X2ndWon/(svpt-X1stIn),#Double check this metric
+         second_point_serve_win_pct=X2ndWon/(svpt - X1stIn -df),#Double check this metric
          aces_df_ratio=ace/df,
          bp_saved_pct=bpSaved/bpFaced)
 head(match_stats1)
