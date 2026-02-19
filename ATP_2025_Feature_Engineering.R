@@ -27,14 +27,14 @@ summary(atp_2025)
 
 #Prepare the data
 winners_df <-atp_2025 %>%
-  dplyr::select(surface,tourney_date, starts_with("w")) %>%
+  dplyr::select(surface,tourney_date,tourney_name, starts_with("w")) %>%
   dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("w"))
 
 #Create win column
 winners_df$win_game <- "Yes"
 
 losers_df <- atp_2025 %>%
-  dplyr::select(surface,tourney_date, starts_with("l")) %>%
+  dplyr::select(surface,tourney_date,tourney_name, starts_with("l")) %>%
   dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("l"))
 
 losers_df$win_game <- "No"
