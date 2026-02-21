@@ -80,6 +80,7 @@ match_stats$win_game <- as.factor(match_stats$win_game)
 colnames(match_stats)
 
 match_stats1 <-match_stats %>%
+  na.omit() %>%
   mutate(first_point_serve_win_pct=X1stWon/X1stIn,
          second_point_serve_win_pct=X2ndWon/(svpt - X1stIn -df),
          first_ret_win_pct = X1stRetWon/X1stRetIn,
@@ -90,11 +91,28 @@ match_stats1 <-match_stats %>%
 head(match_stats1)
 summary(match_stats1)
 
-match_stats1 %>%
-  filter(X2ndRetIn<0)
+#Explore impact of return statistics
 
-match_stats1%>% filter(X1stRetWon==-3)
+#First return percentage
+ggplot(match_stats1, aes(x = first_ret_win_pct, colour = win_game)) +
+  geom_density() +
+  labs(title = "First Serve Return Win Percentage Distribution", x = "First Serve Return Win Percentage", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")
 
-fit <- glm(win_game~second_point_serve_win_pct,family="binomial",data=match_stats1)
-summary(fit)
-w_2ndWon/(w_svpt-w_1stIn)
+#Second return percentage
+ggplot(match_stats1, aes(x = second_ret_win_pct, colour = win_game)) +
+  geom_density() +
+  labs(title = "Second Serve Return Win Percentage Distribution", 
+       x = "Second Serve Return Win Percentage", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")
+
+#Break Point Conversion
+ggplot(match_stats1, aes(x = bp_conversion_pct, colour = win_game)) +
+  geom_density() +
+  labs(title = "BreakPoint Conversion Percentage Distribution", 
+       x = "BreakPoint Conversion Percentage", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")   
+

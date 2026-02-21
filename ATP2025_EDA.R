@@ -1,7 +1,7 @@
-#######ATP 2025 EDA######
+#######ATP 2025 EDA###### 
 
 #Load libraries
-library(ggplot2)
+library(ggplot2) 
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -26,8 +26,8 @@ str(atp_2025)
 summary(atp_2025)
 
 #Split into categorical and numerical variables
-atp_2025_cat_vars <- atp_2025 %>% select(where(~ is.character(.x) || is.factor(.x)))
-atp_2025_num_vars   <- atp_2025 %>% select(where(is.numeric))
+atp_2025_cat_vars <- atp_2025 %>% dplyr::select(where(~ is.character(.x) || is.factor(.x)))
+atp_2025_num_vars   <- atp_2025 %>% dplyr::select(where(is.numeric))
 any(is.na(atp_2025_cat_vars)) #  There are no instances of categorical variables
 any(atp_2025_num_vars)
 
@@ -35,7 +35,8 @@ any(atp_2025_num_vars)
 vis_miss(atp_2025_num_vars)
 
 #Test if the data are missing completely at random
-mcar_test(atp_2025_num_vars)  
+mcar_test(atp_2025_num_vars)
+
 
 #Summary of winners
 players_win <- as.data.frame(table(atp_2025$winner_name))
@@ -866,3 +867,29 @@ head(clay_court1)
 full_model <- glm(win_game~.,data=clay_court1,family = "binomial")
 #Stepwise selection
 step(full_model,scope=~.,direction = "both")
+
+#Make sure the script ATP Feature Engineering is run
+
+#First return percentage
+ggplot(match_stats1, aes(x = first_ret_win_pct, colour = win_game)) +
+  geom_density() +
+  labs(title = "First Serve Return Win Percentage Distribution", x = "First Serve Return Win Percentage", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")
+
+#Second return percentage
+ggplot(match_stats1, aes(x = second_ret_win_pct, colour = win_game)) +
+  geom_density() +
+  labs(title = "Second Serve Return Win Percentage Distribution", 
+       x = "Second Serve Return Win Percentage", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")
+
+#Break Point Conversion
+ggplot(match_stats1, aes(x = bp_conversion_pct, colour = win_game)) +
+  geom_density() +
+  labs(title = "BreakPoint Conversion Percentage Distribution", 
+       x = "BreakPoint Conversion Percentage", y = "Density") +
+  facet_wrap(~surface) +
+  labs(colour="Game Winner")   
+

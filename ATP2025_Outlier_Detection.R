@@ -31,9 +31,6 @@ winners_df <-atp_2025 %>%
   dplyr::select(surface,tourney_date,tourney_name, starts_with("w")) %>%
   dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("w"))
 
-match_stats <- data.frame(rbind(losers_df,winners_df))
-head(match_stats)
-match_stats$win_game <- as.factor(match_stats$win_game)
 
 #Create win column
 winners_df$win_game <- "Yes"
@@ -67,8 +64,8 @@ colnames(atp_2025_num_vars)
 source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project/Hampel_Outlier_Detection.R")
 
 #Explore age and height
-summary(atp_2025_num_vars$age)
-summary(atp_2025_num_vars$ht)
+summary(match_stats$age)
+summary(match_stats$ht)
 
 #The method will be applied for numerical variables and will be focused on match stats
 match_metrics <-setdiff(colnames(atp_2025_num_vars),
@@ -79,6 +76,9 @@ match_stats2 <- atp_2025_num_vars[,match_metrics]
 
 #Apply Hampel Outlier function
 colSums(map_df(match_stats2,hampel_outlier_detection))/nrow(match_stats2)
+
+#Summary of values to check if the outliers look reasonable
+summary(match_stats2)
 
 #Investigate if ranking and match outcome is related to outliers
 outlier_df <-data.frame(cbind(match_stats1[,c("name","win_game","rank")],
@@ -95,7 +95,7 @@ outlier_summary_df <- outlier_df%>%
     values_to = "mean_value"
   )
 
-#Data Visualisation
+#Data Visualisation 
 ggplot(outlier_summary_df, aes(x = metric, y = round(mean_value,2), fill = win_game)) +
   geom_col(position = "dodge") +
   labs(
