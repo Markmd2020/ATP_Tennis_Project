@@ -230,7 +230,7 @@ rect.hclust(hard_hclust4, k=3, border="red")
 # Explore the clusters
 hard.groups.3 <- cutree(hard_hclust4,3) # store the results
 hard.groups.3
-aggregate(hard_stats[,3:14],list(hard.groups.3),median)
+aggregate(hard_stats[,3:14],list(hard.groups.3),median) 
 
 #Tag win rate
 hard_win_rate <- win_rate_surface[win_rate_surface$surface=="Hard",c("name","win_rate")]
@@ -240,3 +240,48 @@ head(hard_stats1)
 
 #Calculate win rate by cluster
 aggregate(hard_stats1[,3:15],list(hard.groups.3),median)
+
+#Build a Grass Model
+grass_stats <- stats_by_surface_df1[stats_by_surface_df1$surface=="Grass",]
+str(grass_stats)
+plot_labels <- grass_stats$name
+
+#Scale the data
+grass_stats_scaled <- scale(grass_stats[,3:14])
+
+#Try different hierarchical clustering methods with euclidean distance
+#Average
+grass_hclust1  <- agnes(grass_stats_scaled,diss=FALSE,metric="euclidean",method="average")
+plot(grass_hclust1,main="Average Link",which.plot=2,labels=plot_labels)	## dendrogram
+
+#Single
+grass_hclust2  <- agnes(grass_stats_scaled,diss=FALSE,metric="euclidean",method="single")
+plot(grass_hclust2,main="Single Link",which.plot=2,labels=plot_labels)	## dendrogram
+
+#Complete
+grass_hclust3  <- agnes(grass_stats_scaled,diss=FALSE,metric="euclidean",method="complete")
+plot(grass_hclust3,main="Complete Link",which.plot=2,labels=plot_labels)	## dendrogram
+
+#Ward
+grass_hclust4  <- agnes(grass_stats_scaled,diss=FALSE,metric="euclidean",method="ward")
+plot(grass_hclust4,main="Ward",which.plot=2,labels=plot_labels)	## dendrogram
+
+fviz_nbclust(grass_stats_scaled, FUN=hcut, method = "wss",hc.method="ward")
+
+# re-draw dendrogram with red borders around the clusters 
+plot(grass_hclust4,main="Ward, 3 Clusters For Grass Matches",which.plot=2,labels=plot_labels)
+rect.hclust(grass_hclust4, k=3, border="red") 
+
+# Explore the clusters
+clay.groups.3 <- cutree(clay_hclust4,3) # store the results
+clay.groups.3
+aggregate(clay_stats1[,3:14],list(clay.groups.3),median)
+
+#Tag win rate
+clay_win_rate <- win_rate_surface[win_rate_surface$surface=="Clay",c("name","win_rate")]
+clay_stats1 <- clay_stats %>%
+  merge(.,clay_win_rate,by="name")
+head(clay_stats1)
+
+#Calculate win rate by cluster
+aggregate(clay_stats1[,3:15],list(clay.groups.3),median)
