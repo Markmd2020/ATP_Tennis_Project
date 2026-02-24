@@ -144,4 +144,45 @@ any(duplicated(top_players_data$name))
 #Merge to stats file
 stats_by_surface_df1 <- stats_by_surface_df %>%
                       merge(.,top_players_data,by="name")
-head(stats_by_surface_df1)
+head(stats_by_surface_df1) 
+
+#Calculate win rate by surface
+win_rate_surface <- top_players_stats1%>%
+  group_by(name,surface)%>%
+  summarise(win_rate=mean(win_game=="Yes"))
+
+#Build a Clay Model
+clay_stats <- stats_by_surface_df1[stats_by_surface_df1$surface=="Clay",]
+str(clay_stats)
+plot_labels <- clay_stats$name
+
+#Scale the data
+clay_stats_scaled <- scale(clay_stats[,3:14])
+
+#Try different hierarchical clustering methods with euclidean distance
+#Average
+clay_hclust1  <- agnes(clay_stats_scaled,diss=FALSE,metric="euclidean",method="average")
+plot(clay_hclust1,main="Average Link",which.plot=2,labels=plot_labels)	## dendrogram
+
+#Single
+clay_hclust2  <- agnes(clay_stats_scaled,diss=FALSE,metric="euclidean",method="single")
+plot(clay_hclust2,main="Single Link",which.plot=2,labels=plot_labels)	## dendrogram
+
+#Complete
+clay_hclust3  <- agnes(clay_stats_scaled,diss=FALSE,metric="euclidean",method="complete")
+plot(clay_hclust3,main="Complete Link",which.plot=2,labels=plot_labels)	## dendrogram
+
+#Ward
+clay_hclust4  <- agnes(clay_stats_scaled,diss=FALSE,metric="euclidean",method="ward")
+plot(clay_hclust4,main="Ward",which.plot=2,labels=plot_labels)	## dendrogram
+
+fviz_nbclust(clay_stats_scaled, FUN=hcut, method = "wss",hc.method="ward")
+
+# re-draw dendrogram with red borders around the clusters 
+plot(clay_hclust4,main="Ward, 3 Clusters For Clay Matches",which.plot=2,labels=plot_labels)
+rect.hclust(clay_hclust4, k=3, border="red") 
+
+# Explore the clusters
+clay.groups.3 <- cutree(clay_hclust4,3) # store the results
+clay.groups.3
+aggregate(clay_stats[,3:14],list(clay.groups.3),median)
