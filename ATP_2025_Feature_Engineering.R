@@ -28,7 +28,7 @@ head(atp_2025)
 
 #Add return statistics and enforce data integrity constraints
 atp_2025_cleaned <- atp_2025%>%
-            filter((l_1stIn>=l_1stWon) & (w_svpt - w_1stIn -w_df >=0) & (l_svpt - l_1stIn -l_df >0)
+            filter((l_1stIn>=l_1stWon) & (w_1stIn>=w_1stWon) & (w_svpt - w_1stIn -w_df >=0) & (l_svpt - l_1stIn -l_df >0)
                    & (w_bpFaced>=w_bpSaved) & (l_bpFaced>=l_bpSaved)
                    & (w_svpt - w_1stIn -w_df >= w_2ndWon) & (l_svpt - l_1stIn -l_df >l_2ndWon) ) %>% 
             mutate(w_1stRetIn=l_1stIn,
@@ -47,13 +47,14 @@ summary(atp_2025_cleaned)
 atp_2025_cleaned%>%filter(w_2ndRetWon<0)
 atp_2025%>%filter(w_1stRetWon==-3)
 atp_2025%>% filter(l_1stIn<l_1stWon) %>% tally()#Constraint 1
+atp_2025%>% filter(w_1stIn<w_1stWon) %>% tally()#Constraint 2
 atp_2025%>% filter(l_2ndRetIn <0) %>% tally()
-atp_2025%>% filter(w_svpt - w_1stIn -w_df <0) %>% tally()#Constraint 2
-atp_2025%>% filter(l_svpt - l_1stIn -l_df <0) %>% tally()#Constraint 3
-atp_2025%>% filter(w_bpFaced<w_bpSaved) %>% tally()#Constraint 4
-atp_2025%>% filter(l_bpFaced<l_bpSaved) %>% tally()#Constraint 5
-atp_2025%>% filter(w_svpt - w_1stIn -w_df < w_2ndWon) %>% tally()#Constraint 6
-atp_2025%>% filter(l_svpt - l_1stIn -l_df < l_2ndWon) %>% tally()#Constraint 7
+atp_2025%>% filter(w_svpt - w_1stIn -w_df <0) %>% tally()#Constraint 3
+atp_2025%>% filter(l_svpt - l_1stIn -l_df <0) %>% tally()#Constraint 4
+atp_2025%>% filter(w_bpFaced<w_bpSaved) %>% tally()#Constraint 5
+atp_2025%>% filter(l_bpFaced<l_bpSaved) %>% tally()#Constraint 6
+atp_2025%>% filter(w_svpt - w_1stIn -w_df < w_2ndWon) %>% tally()#Constraint 7
+atp_2025%>% filter(l_svpt - l_1stIn -l_df < l_2ndWon) %>% tally()#Constraint 8
 
 
 #Prepare the data
