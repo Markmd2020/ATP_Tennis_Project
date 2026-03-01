@@ -226,7 +226,7 @@ radarchart(clay_plot_df[c("Max","Min","Baseline Masters"),],
            title="Baseline Masters Clay Profile",pcol="red")
 
 radarchart(clay_plot_df[c("Max","Min","Precise Servers"),],
-           title="Precise Servers Clay Profile",pcol="orange")
+           title="Precise Servers Clay Profile",pcol="orange") 
 
 
 #Build a Hard Court Model
@@ -276,6 +276,24 @@ aggregate(hard_stats1[,3:15],list(hard.groups.3),median)
 #Cluster 1: Tenacious Athletes
 #Cluster 2: Aggressive Servers
 #Cluster 3: All Round Virtuosos 
+
+#Deep dive into performance
+hard_deep_dive <-aggregate(hard_stats1[,c("avg_first_point_serve_win_pct","avg_second_point_serve_win_pct","avg_first_ret_win_pct",
+                                          "avg_second_ret_win_pct","avg_bp_saved_pct","avg_bp_conversion_pct")],
+                           list(clay.groups.3),median)
+rownames(hard_deep_dive) <- c("Tenacious Athletes","Aggressive Servers","All Round Virtuosos")
+dim(hard_deep_dive)
+
+#Plot radar charts
+hard_plot_df <- rbind(max_min, hard_deep_dive[,2:7])
+radarchart(hard_plot_df[c("Max","Min","Tenacious Athletes"),],
+           title="Tenacious Athletes Hard Court Profile",pcol="darkgreen")
+
+radarchart(hard_plot_df[c("Max","Min","Aggressive Servers"),],
+           title="Aggressive Servers Hard Court Profile",pcol="red")
+
+radarchart(hard_plot_df[c("Max","Min","All Round Virtuosos"),],
+           title="All Round Virtuosos Hard  Court Profile",pcol="orange")
 
 #Build a Grass Model
 grass_stats <- stats_by_surface_df1[stats_by_surface_df1$surface=="Grass",]
