@@ -190,7 +190,7 @@ rect.hclust(clay_hclust4, k=3, border="red")
 # Explore the clusters
 clay.groups.3 <- cutree(clay_hclust4,3) # store the results
 clay.groups.3
-aggregate(clay_stats1[,3:14],list(clay.groups.3),median)
+aggregate(clay_stats[,3:14],list(clay.groups.3),median)
 
 #Tag win rate
 clay_win_rate <- win_rate_surface[win_rate_surface$surface=="Clay",c("name","win_rate")]
@@ -209,6 +209,24 @@ rownames(clay_deep_dive) <- c("Combative All Rounders","Baseline Masters","Preci
 dim(clay_deep_dive)
 
 #Create a radar chart
+
+# Define the variable ranges: maximum and minimum
+max_min <- data.frame(
+  avg_first_point_serve_win_pct=c(0,1),avg_second_point_serve_win_pct=c(0,1),avg_first_ret_win_pct=c(0,1),
+  avg_second_ret_win_pct=c(0,1),avg_bp_saved_pct=c(0,1),avg_bp_conversion_pct=c(0,1)
+)
+rownames(max_min) <- c("Max", "Min")
+
+# Bind the variable ranges to the data
+clay_plot_df <- rbind(max_min, clay_deep_dive[,2:7])
+radarchart(clay_plot_df[c("Max","Min","Combative All Rounders"),],
+           title="Combative All Rounders Clay Profile",pcol="darkgreen")
+
+radarchart(clay_plot_df[c("Max","Min","Baseline Masters"),],
+           title="Baseline Masters Clay Profile",pcol="red")
+
+radarchart(clay_plot_df[c("Max","Min","Precise Servers"),],
+           title="Precise Servers Clay Profile",pcol="orange")
 
 
 #Build a Hard Court Model
