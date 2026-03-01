@@ -17,6 +17,7 @@ library(lattice)
 library(MASS)
 library(cluster)
 library(factoextra)
+library(fmsb)
 
 #Set seed for reproducibility
 set.seed(135)
@@ -182,6 +183,10 @@ fviz_nbclust(clay_stats_scaled, FUN=hcut, method = "wss",hc.method="ward")
 plot(clay_hclust4,main="Ward, 3 Clusters For Clay Matches",which.plot=2,labels=plot_labels)
 rect.hclust(clay_hclust4, k=3, border="red") 
 
+#Cluster 1: Combative All Rounders
+#Cluster 2: Baseline Masters
+#Cluster 3: Precise Servers
+
 # Explore the clusters
 clay.groups.3 <- cutree(clay_hclust4,3) # store the results
 clay.groups.3
@@ -195,6 +200,16 @@ head(clay_stats1)
 
 #Calculate win rate by cluster
 aggregate(clay_stats1[,3:15],list(clay.groups.3),median)
+
+#Deep dive into performance
+clay_deep_dive <-aggregate(clay_stats1[,c("avg_first_point_serve_win_pct","avg_second_point_serve_win_pct","avg_first_ret_win_pct",
+                         "avg_second_ret_win_pct","avg_bp_saved_pct","avg_bp_conversion_pct")],
+          list(clay.groups.3),median)
+rownames(clay_deep_dive) <- c("Combative All Rounders","Baseline Masters","Precise Servers")
+dim(clay_deep_dive)
+
+#Create a radar chart
+
 
 #Build a Hard Court Model
 hard_stats <- stats_by_surface_df1[stats_by_surface_df1$surface=="Hard",]
@@ -240,6 +255,9 @@ head(hard_stats1)
 
 #Calculate win rate by cluster
 aggregate(hard_stats1[,3:15],list(hard.groups.3),median)
+#Cluster 1: Tenacious Athletes
+#Cluster 2: Aggressive Servers
+#Cluster 3: All Round Virtuosos 
 
 #Build a Grass Model
 grass_stats <- stats_by_surface_df1[stats_by_surface_df1$surface=="Grass",]
@@ -273,15 +291,19 @@ plot(grass_hclust4,main="Ward, 3 Clusters For Grass Matches",which.plot=2,labels
 rect.hclust(grass_hclust4, k=3, border="red") 
 
 # Explore the clusters
-clay.groups.3 <- cutree(clay_hclust4,3) # store the results
-clay.groups.3
-aggregate(clay_stats1[,3:14],list(clay.groups.3),median)
+grass.groups.3 <- cutree(grass_hclust4,3) # store the results
+grass.groups.3
+aggregate(grass_stats[,3:14],list(grass.groups.3),median)
 
 #Tag win rate
-clay_win_rate <- win_rate_surface[win_rate_surface$surface=="Clay",c("name","win_rate")]
-clay_stats1 <- clay_stats %>%
-  merge(.,clay_win_rate,by="name")
-head(clay_stats1)
+grass_win_rate <- win_rate_surface[win_rate_surface$surface=="Grass",c("name","win_rate")]
+grass_stats1 <- grass_stats %>%
+  merge(.,grass_win_rate,by="name")
+head(grass_stats1) 
 
 #Calculate win rate by cluster
-aggregate(clay_stats1[,3:15],list(clay.groups.3),median)
+aggregate(grass_stats1[,3:15],list(grass.groups.3),median)
+
+#Cluster 1: Adaptable Returners
+#Cluster 2: Serve and Volley
+#Cluster 3: Grass Averse
