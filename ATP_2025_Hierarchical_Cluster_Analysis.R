@@ -280,7 +280,7 @@ aggregate(hard_stats1[,3:15],list(hard.groups.3),median)
 #Deep dive into performance
 hard_deep_dive <-aggregate(hard_stats1[,c("avg_first_point_serve_win_pct","avg_second_point_serve_win_pct","avg_first_ret_win_pct",
                                           "avg_second_ret_win_pct","avg_bp_saved_pct","avg_bp_conversion_pct")],
-                           list(clay.groups.3),median)
+                           list(hard.groups.3),median)
 rownames(hard_deep_dive) <- c("Tenacious Athletes","Aggressive Servers","All Round Virtuosos")
 dim(hard_deep_dive)
 
@@ -343,3 +343,21 @@ aggregate(grass_stats1[,3:15],list(grass.groups.3),median)
 #Cluster 1: Adaptable Returners
 #Cluster 2: Serve and Volley
 #Cluster 3: Grass Averse
+
+#Deep Dive into performance
+grass_deep_dive <-aggregate(grass_stats1[,c("avg_first_point_serve_win_pct","avg_second_point_serve_win_pct","avg_first_ret_win_pct",
+                                          "avg_second_ret_win_pct","avg_bp_saved_pct","avg_bp_conversion_pct")],
+                           list(grass.groups.3),median)
+rownames(grass_deep_dive) <- c("Adaptable Returners","Serve and Volley","Grass Averse")
+dim(grass_deep_dive)
+
+#Plot radar charts
+grass_plot_df <- rbind(max_min, grass_deep_dive[,2:7])
+radarchart(grass_plot_df[c("Max","Min","Adaptable Returners"),],
+           title="Adaptable Returners Grass Profile",pcol="darkgreen")
+
+radarchart(grass_plot_df[c("Max","Min","Serve and Volley"),],
+           title="Serve and Volley Grass Profile",pcol="red") 
+
+radarchart(grass_plot_df[c("Max","Min","Grass Averse"),],
+           title="Grass Averse Grass Profile",pcol="orange") 
