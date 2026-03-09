@@ -192,6 +192,11 @@ clay.groups.3 <- cutree(clay_hclust4,3) # store the results
 clay.groups.3
 aggregate(clay_stats[,3:14],list(clay.groups.3),median)
 
+#Export table
+clay_summary_df <-data.frame(aggregate(clay_stats[,3:14],list(clay.groups.3),
+                                       median))
+write.csv(clay_summary_df,"clay_summary_df.csv")
+
 #Tag win rate
 clay_win_rate <- win_rate_surface[win_rate_surface$surface=="Clay",c("name","win_rate")]
 clay_stats1 <- clay_stats %>%
@@ -275,7 +280,12 @@ head(hard_stats1)
 aggregate(hard_stats1[,3:15],list(hard.groups.3),median)
 #Cluster 1: Tenacious Athletes
 #Cluster 2: Aggressive Servers
-#Cluster 3: All Round Virtuosos 
+#Cluster 3: All Round Virtuosos  
+
+#Export table  
+hard_summary_df <-data.frame(aggregate(hard_stats[,3:14],list(hard.groups.3),
+                                       median))
+write.csv(hard_summary_df,"hard_summary_df.csv")
 
 #Deep dive into performance
 hard_deep_dive <-aggregate(hard_stats1[,c("avg_first_point_serve_win_pct","avg_second_point_serve_win_pct","avg_first_ret_win_pct",
@@ -293,7 +303,7 @@ radarchart(hard_plot_df[c("Max","Min","Aggressive Servers"),],
            title="Aggressive Servers Hard Court Profile",pcol="red")
 
 radarchart(hard_plot_df[c("Max","Min","All Round Virtuosos"),],
-           title="All Round Virtuosos Hard  Court Profile",pcol="orange")
+           title="All Round Virtuosos Hard Court Profile",pcol="orange")
 
 #Build a Grass Model
 grass_stats <- stats_by_surface_df1[stats_by_surface_df1$surface=="Grass",]
@@ -350,6 +360,11 @@ grass_deep_dive <-aggregate(grass_stats1[,c("avg_first_point_serve_win_pct","avg
                            list(grass.groups.3),median)
 rownames(grass_deep_dive) <- c("Adaptable Returners","Serve and Volley","Grass Averse")
 dim(grass_deep_dive)
+
+#Export table  
+grass_summary_df <-data.frame(aggregate(grass_stats[,3:14],list(grass.groups.3),
+                                       median))
+write.csv(grass_summary_df,"grass_summary_df.csv")
 
 #Plot radar charts
 grass_plot_df <- rbind(max_min, grass_deep_dive[,2:7])

@@ -1,8 +1,7 @@
 #This function calculates IQR values for key match metrics for a time window
-stats_iqr_func <- function(data,group_id,ref_date,window_days,bySurface=TRUE) {
+stats_iqr_func <- function(data,ref_date,window_days,bySurface=TRUE) {
   
   arguments <- as.list(match.call())
-  player_id <- as.character(eval(arguments$group_id,data))
   ref_date <- ymd(ref_date)      # parse the input date
   ref_date1 <- ymd(ref_date - days(window_days))
   
@@ -14,10 +13,10 @@ stats_iqr_func <- function(data,group_id,ref_date,window_days,bySurface=TRUE) {
   
   summary_df <- if(bySurface) { data%>%
       filter(between(tourney_date,ref_date1,ref_date))%>%
-      dplyr::select({{group_id}},surface,ace,df,svpt,SvGms,bpSaved,bpFaced,first_point_serve_win_pct,
+      dplyr::select(name,surface,ace,df,svpt,SvGms,bpSaved,bpFaced,first_point_serve_win_pct,
              second_point_serve_win_pct,first_ret_win_pct,second_ret_win_pct,bp_saved_pct,
              bp_conversion_pct)%>%
-      group_by({{group_id}},surface)%>%
+      group_by(name,surface)%>%
       summarise(ace_q25=quantile(ace,0.25,na.rm=TRUE),
                 ace_q50=quantile(ace,0.5,na.rm=TRUE),
                 ace_q75=quantile(ace,0.75,na.rm=TRUE),
@@ -52,10 +51,10 @@ stats_iqr_func <- function(data,group_id,ref_date,window_days,bySurface=TRUE) {
   } else {
     data%>%
       filter(between(tourney_date,ref_date1,ref_date))%>%
-      dplyr::select({{group_id}},surface,ace,df,svpt,SvGms,bpSaved,bpFaced,first_point_serve_win_pct,
+      dplyr::select(name,surface,ace,df,svpt,SvGms,bpSaved,bpFaced,first_point_serve_win_pct,
              second_point_serve_win_pct,first_ret_win_pct,second_ret_win_pct,bp_saved_pct,
              bp_conversion_pct)%>%
-      group_by({{group_id}})%>%
+      group_by(name)%>%
       summarise(ace_q25=quantile(ace,0.25,na.rm=TRUE),
                 ace_q50=quantile(ace,0.5,na.rm=TRUE),
                 ace_q75=quantile(ace,0.75,na.rm=TRUE),
