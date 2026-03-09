@@ -94,7 +94,34 @@ summary(match_stats1)
 #Setup tournament date
 match_stats1$tourney_date <- ymd(match_stats1$tourney_date)
 
-#US 2025 Data Prep
+#Create dataset to compute rankings
+years <- 2018:2025
+path <- "C:/Applied_Stats_Project/Data"
+for (y in years) {
+  assign(paste0("atp_rank_", y),
+         read.csv(file.path(path, paste0(y, ".csv"))))
+}
+
+atp_rank_data <- data.frame(rbind(atp_rank_2018,atp_rank_2019,atp_rank_2020,
+                             atp_rank_2021,atp_rank_2022,atp_rank_2023,
+                             atp_rank_2024,atp_rank_2025))
+
+winners_rank_df <- atp_rank_data %>%
+  dplyr::select(winner_id,tourney_date,winner_name,winner_rank) %>%
+  dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("w"))
+
+losers_rank_df <- atp_rank_data %>%
+  dplyr::select(loser_id,tourney_date,loser_name,loser_rank) %>%
+  dplyr::rename_with(~ sub("^[^_]*_", "", .x), starts_with("l"))
+
+#Quality checks before stacking both datasets
+all(dim(winners_rank_df) ==dim(losers_rank_df))
+all(names(winners_rank_df)==names(losers_rank_df))
+
+rank_stats <- data.frame(rbind(losers_rank_df,winners_rank_df))
+rank_stats$tourney_date <- ymd(rank_stats$tourney_date)
+
+##US 2025 Data Prep##
 
 #Retrieve tourney start data
 match_stats1 %>%
@@ -110,7 +137,7 @@ us_2025_df <- match_stats1 %>%
   group_by(name)%>%
   slice(1)%>%
   ungroup() %>%
-  dplyr::select(name,age,ht,rank)
+  dplyr::select(name,id,age,ht,rank)
 
 #Tag IQR statistical summaries for the last year
 source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_iqr_func.R")
@@ -119,19 +146,62 @@ us_open_2025_iqr_df <- stats_iqr_func(data=match_stats1,ref_date = min_tourney_s
                                       window_days = 365,bySurface = FALSE)
 
 us_2025_df1 <- us_2025_df %>%
-               left_join(us_open_2025_iqr_df,by="name")
+               left_join(us_open_2025_iqr_df,by="name",suffix = c("",""))
+head(us_2025_df1)
+us_2025_df1 <- data.frame(us_2025_df1)
 
-test <- stats_avg_func(data=match_stats1,ref_date = min_tourney_start_date,
-               window_days = 365,bySurface = FALSE)
-any(duplicated(unique(test$name)))
-test1 <- stats_iqr_func(data=match_stats1,ref_date = min_tourney_start_date,
-                        window_days = 365,bySurface = FALSE)
+#Tag  statistical summaries for warm up tournaments
+#The way to do it is filter by surface and cover 3 months before tournament
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_average_func.R")
+us_open_2025_avg_df <- stats_avg_func(data=match_stats1,ref_date = min_tourney_start_date,
+               window_days = 90,bySurface = TRUE)
+head(us_open_2025_avg_df)
 
-any(duplicated(unique(test1$name)))
+us_2025_df2 <- us_2025_df1 %>%
+  left_join(us_open_2025_avg_df%>%filter(surface=="Hard"),by="name",suffix = c("",""))
+us_2025_df2 <- data.frame(us_2025_df2)
 
+head(us_2025_df2)
+str(us_2025_df2)
 
-us_open_2025_iqr_df <- data.frame(us_open_2025_iqr_df)
-head(us_open_2025_iqr_df)
-str(us_open_2025_iqr_df)
+#Compute target variable
+#First step is to filter out
+us_2025_df3 <-us_2025_df2 %>%
+  mutate(rank_bin=case_when(rank<9 ~"ATP Rank 1-8",
+                            rank<17 ~"ATP Rank 9-16",
+                            rank<33 ~"ATP Rank 17-32",
+                            rank<65 ~"ATP Rank 33-64",
+                            rank<129 ~"ATP Rank 65-128",
+                            TRUE~"129+"))%>%
+  filter(rank_bin != "129+")
 
-us_open_2025_iqr_df$X.name.
+head(us_2025_df3)
+atp_2025[atp_2025$tourney_name=="US Open","tourney_id"]
+
+us2025_exp_wins <- tourney_df(atp_2025,"2025-560")
+us2025_exp_wins <- data.frame(us2025_exp_wins)
+dim(us2025_exp_wins)
+
+us_2025_df4 <- us_2025_df3 %>%
+  left_join(us2025_exp_wins%>% dplyr::select(id,bonus_round),
+            by="id",suffix = c("",""))
+us_2025_df4 <- data.frame(us_2025_df4)
+
+#Add Historical Rankings
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/top_rank_func.R")
+#Retrieve highest ranking from the last five years which 1825 days
+max_rank_df <- top_rank_func(rank_stats,min_tourney_start_date,1825)
+
+us_2025_df5 <- us_2025_df4 %>%
+  left_join(max_rank_df,
+            by="name",suffix = c("",""))
+colnames(us_2025_df5)
+dim(us_2025_df5)
+head(us_2025_df5)
+us_2025_df5$name
+
+#Save dataset
+saveRDS(us_2025_df5,
+file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/us_2025_df5.rds")
+
+test <-readRDS(file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/us_2025_df5.rds")

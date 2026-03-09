@@ -60,7 +60,7 @@ tourney_df <- function(data,tourney_id){
     
     filter(row_number() == 1) %>%
     
-    select(winner_id,winner_rank,winner_hand,winner_ht,winner_age)
+    dplyr::select(winner_id,winner_rank,winner_hand,winner_ht,winner_age)
   
   
   

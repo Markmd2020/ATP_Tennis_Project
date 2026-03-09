@@ -14,4 +14,6 @@ top_rank_func <- function(data,ref_date,window_days){
     group_by(name)%>%
     summarise(max_rank= max(rank))
   
-}
+  top_rank_df
+  
+} 
