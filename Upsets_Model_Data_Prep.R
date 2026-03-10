@@ -204,4 +204,86 @@ us_2025_df5$name
 saveRDS(us_2025_df5,
 file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/us_2025_df5.rds")
 
-test <-readRDS(file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/us_2025_df5.rds")
+##Wimbledon 2025 Data Prep##
+
+#Retrieve tourney start data
+match_stats1 %>%
+  filter(tourney_name=="Wimbledon" & year(tourney_date)==2025)%>%
+  summarise(min(tourney_date))
+
+min_tourney_start_date <- as.Date("2025-06-30")
+
+#Retrieve age and height for each player
+wimbledon_2025_df <- match_stats1 %>%
+  filter(tourney_name=="Wimbledon" & year(tourney_date)==2025)%>%
+  arrange(name,tourney_date)%>%
+  group_by(name)%>%
+  slice(1)%>%
+  ungroup() %>%
+  dplyr::select(name,id,age,ht,rank)
+
+#Tag IQR statistical summaries for the last year
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_iqr_func.R")
+
+wimbledon_2025_iqr_df <- stats_iqr_func(data=match_stats1,ref_date = min_tourney_start_date,
+                                      window_days = 365,bySurface = FALSE)
+
+wimbledon_2025_df1 <- wimbledon_2025_df %>%
+  left_join(wimbledon_2025_iqr_df,by="name",suffix = c("",""))
+head(wimbledon_2025_df1)
+wimbledon_2025_df1 <- data.frame(wimbledon_2025_df1)
+
+#Tag  statistical summaries for warm up tournaments
+#The way to do it is filter by surface and cover 3 months before tournament
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_average_func.R")
+wimbledon_2025_avg_df <- stats_avg_func(data=match_stats1,ref_date = min_tourney_start_date,
+                                      window_days = 90,bySurface = TRUE)
+head(wimbledon_2025_avg_df)
+
+wimbledon_2025_df2 <- wimbledon_2025_df1 %>%
+  left_join(wimbledon_2025_avg_df%>%filter(surface=="Grass"),by="name",suffix = c("",""))
+wimbledon_2025_df2 <- data.frame(wimbledon_2025_df2)
+
+head(wimbledon_2025_df2)
+str(wimbledon_2025_df2)
+
+#Compute target variable
+#First step is to filter out
+wimbledon_2025_df3 <- wimbledon_2025_df2 %>%
+  mutate(rank_bin=case_when(rank<9 ~"ATP Rank 1-8",
+                            rank<17 ~"ATP Rank 9-16",
+                            rank<33 ~"ATP Rank 17-32",
+                            rank<65 ~"ATP Rank 33-64",
+                            rank<129 ~"ATP Rank 65-128",
+                            TRUE~"129+"))%>%
+  filter(rank_bin != "129+")
+
+head(wimbledon_2025_df3)
+atp_2025[atp_2025$tourney_name=="Wimbledon","tourney_id"]
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/grand_slam_expected_wins.R")
+
+wimbledon_exp_wins <- tourney_df(atp_2025,"2025-540")
+wimbledon_exp_wins <- data.frame(wimbledon_exp_wins)
+dim(wimbledon_exp_wins)
+
+wimbledon_2025_df4 <- wimbledon_2025_df3 %>%
+  left_join(wimbledon_exp_wins%>% dplyr::select(id,bonus_round),
+            by="id",suffix = c("",""))
+wimbledon_2025_df4 <- data.frame(wimbledon_2025_df4)
+
+#Add Historical Rankings
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/top_rank_func.R")
+#Retrieve highest ranking from the last five years which 1825 days
+max_rank_df <- top_rank_func(rank_stats,min_tourney_start_date,1825)
+
+wimbledon_2025_df5 <- wimbledon_2025_df4 %>%
+  left_join(max_rank_df,
+            by="name",suffix = c("",""))
+colnames(wimbledon_2025_df5)
+dim(wimbledon_2025_df5)
+head(wimbledon_2025_df5)
+table(wimbledon_2025_df5$bonus_round)
+
+#Save dataset 
+saveRDS(wimbledon_2025_df5,
+        file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/wimbledon_2025_df5.rds")
