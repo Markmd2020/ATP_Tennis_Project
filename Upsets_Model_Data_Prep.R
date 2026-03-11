@@ -456,3 +456,87 @@ table(aus_open_2025_df5$bonus_round)
 #Save dataset 
 saveRDS(aus_open_2025_df5,
         file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/aus_open_2025_df5.rds")
+
+
+##US 2024 Data Prep##
+
+#Retrieve tourney start data
+match_stats1 %>%
+  filter(tourney_name=="US Open" & year(tourney_date)==2024)%>%
+  summarise(min(tourney_date))
+
+min_tourney_start_date <- as.Date("2024-08-26")
+
+#Retrieve age and height for each player
+us_2024_df <- match_stats1 %>%
+  filter(tourney_name=="US Open" & year(tourney_date)==2024)%>%
+  arrange(name,tourney_date)%>%
+  group_by(name)%>%
+  slice(1)%>%
+  ungroup() %>%
+  dplyr::select(name,id,age,ht,rank)
+
+#Tag IQR statistical summaries for the last year
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_iqr_func.R")
+
+us_open_2024_iqr_df <- stats_iqr_func(data=match_stats1,ref_date = min_tourney_start_date,
+                                      window_days = 365,bySurface = FALSE)
+
+us_2024_df1 <- us_2024_df %>%
+  left_join(us_open_2024_iqr_df,by="name",suffix = c("",""))
+head(us_2024_df1)
+us_2024_df1 <- data.frame(us_2024_df1)
+
+#Tag  statistical summaries for warm up tournaments
+#The way to do it is filter by surface and cover 3 months before tournament
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_average_func.R")
+us_open_2024_avg_df <- stats_avg_func(data=match_stats1,ref_date = min_tourney_start_date,
+                                      window_days = 90,bySurface = TRUE)
+head(us_open_2024_avg_df)
+
+us_2024_df2 <- us_2024_df1 %>%
+  left_join(us_open_2024_avg_df%>%filter(surface=="Hard"),by="name",suffix = c("",""))
+us_2024_df2 <- data.frame(us_2024_df2)
+
+head(us_2024_df2)
+str(us_2024_df2)
+
+#Compute target variable
+#First step is to filter out
+us_2024_df3 <-us_2024_df2 %>%
+  mutate(rank_bin=case_when(rank<9 ~"ATP Rank 1-8",
+                            rank<17 ~"ATP Rank 9-16",
+                            rank<33 ~"ATP Rank 17-32",
+                            rank<65 ~"ATP Rank 33-64",
+                            rank<129 ~"ATP Rank 65-128",
+                            TRUE~"129+"))%>%
+  filter(rank_bin != "129+")
+
+head(us_2024_df3)
+atp_2024[atp_2024$tourney_name=="US Open","tourney_id"]
+
+us2024_exp_wins <- tourney_df(atp_2024,"2024-560")
+us2024_exp_wins <- data.frame(us2024_exp_wins)
+dim(us2024_exp_wins)
+
+us_2024_df4 <- us_2024_df3 %>%
+  left_join(us2024_exp_wins%>% dplyr::select(id,bonus_round),
+            by="id",suffix = c("",""))
+us_2024_df4 <- data.frame(us_2024_df4)
+
+#Add Historical Rankings
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/top_rank_func.R")
+#Retrieve highest ranking from the last five years which 1825 days
+max_rank_df <- top_rank_func(rank_stats,min_tourney_start_date,1825)
+
+us_2024_df5 <- us_2025_df4 %>%
+  left_join(max_rank_df,
+            by="name",suffix = c("",""))
+colnames(us_2024_df5)
+dim(us_2024_df5)
+head(us_2024_df5)
+table(us_2024_df5$bonus_round)
+
+#Save dataset
+saveRDS(us_2024_df5,
+        file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/us_2024_df5.rds")
