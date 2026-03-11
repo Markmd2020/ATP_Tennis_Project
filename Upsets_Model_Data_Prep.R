@@ -351,7 +351,7 @@ french_open_exp_wins <- data.frame(french_open_exp_wins)
 dim(french_open_exp_wins)
 
 french_open_2025_df4 <- french_open_2025_df3 %>%
-  left_join(wimbledon_exp_wins%>% dplyr::select(id,bonus_round),
+  left_join(french_open_exp_wins%>% dplyr::select(id,bonus_round),
             by="id",suffix = c("",""))
 french_open_2025_df4 <- data.frame(french_open_2025_df4)
 
@@ -366,8 +366,93 @@ french_open_2025_df5 <- french_open_2025_df4 %>%
 colnames(french_open_2025_df5)
 dim(french_open_2025_df5)
 head(french_open_2025_df5)
-table(french_open_2025_df5$bonus_round)
+table(french_open_2025_df5$bonus_round) 
 
 #Save dataset 
 saveRDS(french_open_2025_df5,
         file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/french_open_2025_df5.rds")
+
+
+##Australian Open 2025 Data Prep##
+
+#Retrieve tourney start data
+match_stats1 %>%
+  filter(tourney_name=="Australian Open" & year(tourney_date)==2025)%>%
+  summarise(min(tourney_date))
+
+min_tourney_start_date <- as.Date("2025-01-13")
+
+#Retrieve age and height for each player
+aus_open_2025_df <- match_stats1 %>%
+  filter(tourney_name=="Australian Open" & year(tourney_date)==2025)%>%
+  arrange(name,tourney_date)%>%
+  group_by(name)%>%
+  slice(1)%>%
+  ungroup() %>%
+  dplyr::select(name,id,age,ht,rank)
+
+#Tag IQR statistical summaries for the last year
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_iqr_func.R")
+
+aus_open_2025_iqr_df <- stats_iqr_func(data=match_stats1,ref_date = min_tourney_start_date,
+                                          window_days = 365,bySurface = FALSE)
+
+aus_open_2025_df1 <- aus_open_2025_df %>%
+  left_join(aus_open_2025_iqr_df,by="name",suffix = c("",""))
+head(aus_open_2025_df1)
+aus_open_2025_df1 <- data.frame(aus_open_2025_df1)
+
+#Tag  statistical summaries for warm up tournaments
+#The way to do it is filter by surface and cover 3 months before tournament
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/match_stats_average_func.R")
+aus_open_2025_avg_df <- stats_avg_func(data=match_stats1,ref_date = min_tourney_start_date,
+                                          window_days = 90,bySurface = TRUE)
+head(aus_open_2025_avg_df)
+
+aus_open_2025_df2 <- aus_open_2025_df1 %>%
+  left_join(aus_open_2025_avg_df%>%filter(surface=="Hard"),by="name",suffix = c("",""))
+aus_open_2025_df2 <- data.frame(aus_open_2025_df2)
+
+head(aus_open_2025_df2)
+str(aus_open_2025_df2)
+
+#Compute target variable
+#First step is to filter out
+aus_open_2025_df3 <- aus_open_2025_df2 %>%
+  mutate(rank_bin=case_when(rank<9 ~"ATP Rank 1-8",
+                            rank<17 ~"ATP Rank 9-16",
+                            rank<33 ~"ATP Rank 17-32",
+                            rank<65 ~"ATP Rank 33-64",
+                            rank<129 ~"ATP Rank 65-128",
+                            TRUE~"129+"))%>%
+  filter(rank_bin != "129+")
+
+head(aus_open_2025_df3)
+atp_2025[atp_2025$tourney_name=="Australian Open","tourney_id"]
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/grand_slam_expected_wins.R")
+
+aus_open_exp_wins <- tourney_df(atp_2025,"2025-580")
+aus_open_exp_wins <- data.frame(aus_open_exp_wins)
+dim(aus_open_exp_wins)
+
+aus_open_2025_df4 <- aus_open_2025_df3 %>%
+  left_join(aus_open_exp_wins%>% dplyr::select(id,bonus_round),
+            by="id",suffix = c("",""))
+aus_open_2025_df4 <- data.frame(aus_open_2025_df4)
+
+#Add Historical Rankings 
+source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/top_rank_func.R")
+#Retrieve highest ranking from the last five years which 1825 days
+max_rank_df <- top_rank_func(rank_stats,min_tourney_start_date,1825)
+
+aus_open_2025_df5 <- aus_open_2025_df4 %>%
+  left_join(max_rank_df,
+            by="name",suffix = c("",""))
+colnames(aus_open_2025_df5)
+dim(aus_open_2025_df5)
+head(aus_open_2025_df5)
+table(aus_open_2025_df5$bonus_round) 
+
+#Save dataset 
+saveRDS(aus_open_2025_df5,
+        file="C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/GrandSlams_Datasets/aus_open_2025_df5.rds")
