@@ -1,6 +1,6 @@
 ############Upsets Model Data Prep######
 
-#Load libraries
+#Load libraries 
 library(ggplot2)
 library(plyr)
 library(dplyr)
@@ -80,7 +80,6 @@ match_stats$win_game <- as.factor(match_stats$win_game)
 colnames(match_stats)
 
 match_stats1 <-match_stats %>%
-  na.omit() %>%
   mutate(first_point_serve_win_pct=X1stWon/X1stIn,
          second_point_serve_win_pct=X2ndWon/(svpt - X1stIn -df),
          first_ret_win_pct = X1stRetWon/X1stRetIn,
@@ -198,7 +197,7 @@ us_2025_df5 <- us_2025_df4 %>%
 colnames(us_2025_df5)
 dim(us_2025_df5)
 head(us_2025_df5)
-us_2025_df5$name
+table(us_2025_df5$bonus_round)
 
 #Save dataset
 saveRDS(us_2025_df5,
@@ -524,6 +523,7 @@ us_2024_df4 <- us_2024_df3 %>%
             by="id",suffix = c("",""))
 us_2024_df4 <- data.frame(us_2024_df4)
 
+
 #Add Historical Rankings
 source("C:/Users/MarkM/OneDrive/Documents/ATP_Tennis_Project1/top_rank_func.R")
 #Retrieve highest ranking from the last five years which 1825 days
@@ -535,7 +535,6 @@ us_2024_df5 <- us_2025_df4 %>%
 colnames(us_2024_df5)
 dim(us_2024_df5)
 head(us_2024_df5)
-table(us_2024_df5$bonus_round)
 
 #Save dataset
 saveRDS(us_2024_df5,
