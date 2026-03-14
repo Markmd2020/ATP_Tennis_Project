@@ -14,7 +14,13 @@ library(MASS)
 library(leaps)
 library(Information)
 library(ggcorrplot)
+library(lme4)
+library(MuMIn)
+library(glmmLasso)
+library(Epi)
 
+#Set seed to ensure reproducibility
+set.seed(135)
 
 #Read datasets
 aus_open_2023 <- readRDS(
@@ -129,8 +135,8 @@ ggcorrplot(cor_matrix, method = "circle", type = "lower",
            lab = TRUE, lab_size = 3, colors = c("red", "white", "blue"))
 
 #Exclude vars with
-excl_vars1 <- c("ace_q50","ace_q75","avg_first_point_serve_win_pct",
-                "first_point_win_serve_pct_q75","second_point_serve_win_pct_q25")
+excl_vars1 <- c("ace_q50","ace_q75","avg_first_point_serve_win_pct","first_point_serve_win_pct_q25"
+                ,"first_point_win_serve_pct_q75","second_point_serve_win_pct_q25")
 
 mod_vars  <- c(setdiff(top_vars_intersect,excl_vars1),"bonus_round","rank_bin")
 
@@ -145,26 +151,45 @@ grand_slams_test1$rank_bin <- as.factor(grand_slams_test1$rank_bin)
 #Fit Full Model Intercept Only
 full_model_int_only <-  glmer(
   bonus_round ~ avg_first_ret_win_pct + avg_second_point_serve_win_pct + avg_ace
-    + avg_second_ret_win_pct + bp_conversion_pct_q75 + avg_bp_conversion_pct +
-    first_point_serve_win_pct_q75 + bp_saved_pct_q75 + (1 | rank_bin),
+    + avg_second_ret_win_pct + avg_first_ret_win_pct +
+    avg_second_ret_win_pct + avg_bp_saved_pct + (1 | rank_bin),
   data = grand_slams_train1,
   family = binomial,
   control = glmerControl(optimizer = "bobyqa")
   
 )
 
+summary(full_model_int_only)
+
 #Stepwise AIC selection
 options(na.action = "na.fail")
 
 models <- dredge(full_model_int_only, rank = "AICc")
 best_model <- get.models(models, 1)[[1]]
+summary(best_model)  
 
-cat("\n### Best Model from dredge ###\n")
-summary(best_model) 
+mod_preds <- unlist(predict(best_model,newdata=grand_slams_test1,type="response")) 
 
-predict(full_model_int_only,newdata=grand_slams_test1,type="response")
+#Model Evaluation
+#Calculate brier scores
+brier_score <- function(pred, actual) {
+  mean((pred - actual)^2)
+}
+brier_score(mod_preds,as.numeric(grand_slams_test1$bonus_round)-1) 
 
-summary(full_model_int_only)
+#Calculate ROC Curves
+ROC(mod_preds, grand_slams_test1$bonus_round, plot="ROC") 
 
+#Calculate Confusion Matrix
+mean(as.numeric(grand_slams_train1$bonus_round)-1)#Calculate prevalence for cutoff
+upsets_pred <- ifelse(mod_preds>0.1,1,0)
+table(grand_slams_test1$bonus_round,upsets_pred)
 
+#Recall
+(26/(26+10))
 
+#Precision
+(26/(26+115)) 
+
+#Accuracy
+(224+26)/(224+26+10+115)
