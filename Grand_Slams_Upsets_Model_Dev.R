@@ -166,7 +166,10 @@ options(na.action = "na.fail")
 
 models <- dredge(full_model_int_only, rank = "AICc")
 best_model <- get.models(models, 1)[[1]]
-summary(best_model)  
+summary(best_model)
+
+#The predictors are avg_ace,avg_bp_saved_pct,avg_first_ret_win_pct,avg_second_point_serve_win_pct
+#and avg_second_ret_win_pct
 
 mod_preds <- unlist(predict(best_model,newdata=grand_slams_test1,type="response")) 
 
@@ -189,7 +192,24 @@ table(grand_slams_test1$bonus_round,upsets_pred)
 (26/(26+10))
 
 #Precision
-(26/(26+115)) 
+(26/(26+115))  
 
 #Accuracy
 (224+26)/(224+26+10+115)
+
+#Refit the model with lme04 package to extract coefficients
+upsets_model <- glmer(
+  bonus_round ~ avg_ace + avg_bp_saved_pct + avg_first_ret_win_pct + avg_second_point_serve_win_pct + avg_second_ret_win_pct + (1 | rank_bin),
+  data = grand_slams_train1,
+  family = binomial(link = "logit")
+) 
+
+summary(upsets_model)
+
+#Interpret model intercept for each cohort
+ranef(upsets_model)$rank_bin
+
+fixef(upsets_model)
+
+#Extract model coefficients and export them into a table
+coef(upsets_model)  
