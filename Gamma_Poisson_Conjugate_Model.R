@@ -1,4 +1,11 @@
 #######Gamma-Poisson Update Function#####
+
+#Load libraries
+library(dplyr)
+library(ggplot2)
+library(stats4)
+library(tidyr) 
+
 update_gamma <- function(prior_alpha,prior_beta,observed_sum,n){
   posterior_alpha <- prior_alpha + observed_sum
   posterior_beta <- prior_beta  + n
@@ -11,8 +18,8 @@ prior_beta_flat <- 1
 
 #Informed prior parameters
 #These are extracted from the following script
-prior_alpha_inf <- 11.8
-prior_beta_inf <- 5.4
+prior_alpha_inf <- 5.31
+prior_beta_inf <- 0.45
 
 #Retrieve Wimbledon Data
 wimbledon_top8 <- match_stats %>% 
@@ -73,10 +80,7 @@ wimbledon_top8_aces_gamma <- wimbledon_top8_aces_df %>%
 
 ggplot(wimbledon_top8_aces_gamma , aes(x, density, color = player_name)) +
   geom_line() +
-  
-  stat_function(fun = function(x) dbeta(x, alpha, beta),
-                lty = 2, color = "black") +
-  xlim(c(0,20)) +
+  xlim(c(0,35)) +
   labs(x = "Aces Per Game at Wimbledon",
        color = "Player") +
       ggtitle("Aces Per Game at Wimbledon- Uniformed Prior") 
@@ -119,13 +123,10 @@ wimbledon_top8_aces_gamma <- wimbledon_top8_aces_df %>%
 
 ggplot(wimbledon_top8_aces_gamma , aes(x, density, color = player_name)) +
   geom_line() +
-  
-  stat_function(fun = function(x) dbeta(x, alpha, beta),
-                lty = 2, color = "black") +
   xlim(c(0,20)) +
   labs(x = "Aces Per Game at Wimbledon",
        color = "Player") +
-  ggtitle("Aces Per Game at Wimbledon- Informed Prior")     
+  ggtitle("Aces Per Game at Wimbledon- Informed Prior")      
 
 #Retrieve US Open Data
 us_open_top8 <- match_stats %>% 
@@ -166,9 +167,11 @@ head(us_open_top8_df_gamma)
 
 ggplot(us_open_top8_df_gamma , aes(x, density, color = player_name)) +
   geom_line() +
-  stat_function(fun = function(x) dbeta(x, alpha, beta),
+  stat_function(fun = function(x) dbeta(x, prior_alpha_inf, prior_beta_inf),
                 lty = 2, color = "black") +
   xlim(c(0,10)) +
   labs(x = "Double Faults Per Game at US Open",
        color = "Player") +
   ggtitle("Double Faults Per Game at US Open- Uniformed Prior")
+
+mean_aces1 <- mean(wimbledon_top8$ace,na.rm=TRUE)

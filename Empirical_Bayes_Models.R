@@ -93,6 +93,8 @@ aus_open_top8 <- aus_open_top8 %>%
     alpha1 = alpha0 + First_Won,
          beta1 = beta0 + First_Serve- First_Won)
 head(aus_open_top8)
+aus_open_top8 <- data.frame(aus_open_top8)
+write.csv(aus_open_top8,"aus_open_top8.csv")
 
 #Plotting Credible Intervals
 aus_beta <- aus_open_top8 %>%
@@ -147,7 +149,10 @@ ggplot(french_open_beta, aes(x, density, color = name)) +
   stat_function(fun = function(x) dbeta(x, alpha0, beta0),
                 lty = 2, color = "black") +
   labs(x = "Second Serve Win Percentage",
-       color = "Player") 
+       color = "Player")
+
+french_open_top8 <- data.frame(french_open_top8)
+write.csv(french_open_top8,"french_open_top8.csv")
 
 #US Open it requires further feature engineering to derive
 #first return winning percentage
@@ -218,7 +223,7 @@ ll <- function(alpha, beta) {
 m <- mle(ll, start = list(alpha = 1, beta = 1), method = "BFGS")
 ab <- coef(m)
 alpha0 <- ab[1]
-beta0 <- ab[2]  
+beta0 <- ab[2]   
 
 #Update Empirical Bayes
 us_open_top8 <- us_open_top8 %>%
@@ -240,6 +245,7 @@ ggplot(us_open_beta, aes(x, density, color = name)) +
   labs(x = "First Serve Return Win Percentage",
        color = "Player")
 
-
+us_open_top8 <- data.frame(us_open_top8)
+write.csv(us_open_top8,"us_open_top8.csv")
 
  
